@@ -6,6 +6,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,35 +17,36 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: WebBridgeScreen(),
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: true,
     );
   }
 }
 
-class WebBridgeScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final config = BridgeConfig(
-      // baseUrl: 'http://10.0.2.2:5500/assets/demo.html',
-      headers: {'Authorization': 'Bearer token'},
-      // allowedDomains: ['10.0.2.2'],
-      baseUrl: 'http://127.0.0.1:5500/assets/demo.html',
-      allowedDomains: ['127.0.0.1'],
-      enableCache: true,
-    );
+class WebBridgeScreen extends StatefulWidget {
+  const WebBridgeScreen({super.key});
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Web Bridge'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: WebBridgeWidget(
+  @override
+  // ignore: library_private_types_in_public_api
+  _WebBridgeScreenState createState() => _WebBridgeScreenState();
+}
+
+class _WebBridgeScreenState extends State<WebBridgeScreen> {
+  int _currentIndex = 0;
+
+  final config = BridgeConfig(
+    headers: {'Authorization': 'Bearer token'},
+    baseUrl: 'http://10.0.2.2:5500/assets/demo.html',
+    allowedDomains: ['10.0.2.2'],
+    enableCache: true,
+  );
+
+  Widget _buildBody() {
+    if (_currentIndex == 0) {
+      return WebBridgeWidget(
         config: config,
-        showRefreshButton: false, // Consistent appearance
+        showRefreshButton: false,
         onEvent: (event) {
           print('Bridge event: ${event.type} - ${event.data}');
-
-          // Show snackbar for important events
           if (event.type == BridgeEventType.dataUpdate) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -56,45 +59,59 @@ class WebBridgeScreen extends StatelessWidget {
         onUrlChanged: (url) {
           print('URL changed: $url');
         },
+      );
+    } else {
+      return StaticPage();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_currentIndex == 0 ? 'Web Bridge' : 'Static Info'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [Icon(Icons.notifications)],
+      ),
+      body: _buildBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.web), label: 'Web'),
+          BottomNavigationBarItem(icon: Icon(Icons.info), label: 'Static'),
+        ],
       ),
     );
   }
 }
 
-// Alternative usage without custom Scaffold
-class SimpleWebBridgeApp extends StatelessWidget {
+class StaticPage extends StatelessWidget {
+  const StaticPage({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final config = BridgeConfig(
-      baseUrl: 'http://10.0.2.2:5500/assets/demo.html',
-      headers: {'Authorization': 'Bearer token'},
-      // allowedDomains: ['10.0.2.2'],
-      enableCache: true,
-    );
-
-    return MaterialApp(
-      title: 'Flutter Web Bridge',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Simple Web Bridge'),
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        ),
-        body: WebBridgeWidget(
-          config: config,
-          showRefreshButton: false,
-          onEvent: (event) {
-            print('Bridge event: ${event.type} - ${event.data}');
-          },
-          onUrlChanged: (url) {
-            print('URL changed: $url');
-          },
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.info_outline, size: 100, color: Colors.deepPurple),
+            SizedBox(height: 20),
+            Text(
+              'Static Info Page',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            SizedBox(height: 10),
+            Text(
+              'This is a static page where you can show\nFAQs, App Info, Versioning, or anything else.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
         ),
       ),
-      debugShowCheckedModeBanner: false,
     );
   }
 }
