@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flutter Web Bridge Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.primary {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+        }
+
+        .button.success {
+            background: linear-gradient(45deg, #43e97b, #38f9d7);
+        }
+
+        .button.danger {
+            background: linear-gradient(45deg, #fa709a, #fee140);
+        }
+
+        .input {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .log {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-entry.info { color: #64b5f6; }
+        .log-entry.success { color: #81c784; }
+        .log-entry.error { color: #e57373; }
+        .log-entry.warning { color: #ffb74d; }
+
+        .dynamic-content {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+            animation: colorShift 8s infinite;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes colorShift {
+            0% { background: linear-gradient(45deg, #ff6b6b, #4ecdc4); }
+            25% { background: linear-gradient(45deg, #4ecdc4, #45b7d1); }
+            50% { background: linear-gradient(45deg, #45b7d1, #96c93d); }
+            75% { background: linear-gradient(45deg, #96c93d, #f093fb); }
+            100% { background: linear-gradient(45deg, #f093fb, #ff6b6b); }
+        }
+
+        .scroll-area {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            backdrop-filter: blur(5px);
+        }
+
+        .scroll-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4ade80;
+            transition: all 0.3s ease;
+        }
+
+        .scroll-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .counter {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .version-badge {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Flutter Web Bridge Test</h1>
+            <div class="status">
+                <div class="status-dot"></div>
+                <span id="statusText">Connected to Flutter</span>
+            </div>
+            <p>Real-time communication test between Flutter and Web</p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📱 Flutter Communication</h3>
+                <div class="button-group">
+                    <button class="button success" onclick="sendReady()">Send Ready</button>
+                    <button class="button primary" onclick="sendUpdate()">Send Update</button>
+                    <button class="button danger" onclick="sendError()">Send Error</button>
+                    <button class="button" onclick="sendScroll()">Send Scroll Info</button>
+                </div>
+                <p><small>Test basic bridge communication</small></p>
+            </div>
+
+            <div class="card">
+                <h3>💬 Custom Messages</h3>
+                <input type="text" class="input" id="messageInput" placeholder="Enter your message..." />
+                <button class="button primary" onclick="sendCustomMessage()">Send Message</button>
+                <p><small>Send custom data to Flutter</small></p>
+            </div>
+        </div>
+
+        <div class="dynamic-content">
+            <h3>🔄 Dynamic Content Area</h3>
+            <p id="dynamicText">This content updates automatically every 8 seconds!</p>
+            <p>Version: <span class="version-badge" id="versionNumber">1.0.0</span></p>
+            <p><small>Updates sent: <span id="updateCount">0</span></small></p>
+        </div>
+
+        <div class="card">
+            <h3>📊 Interactive Data</h3>
+            <div class="button-group">
+                <button class="button" onclick="sendUserData()">Send User Data</button>
+                <button class="button" onclick="sendDeviceInfo()">Device Info</button>
+                <button class="button" onclick="sendRandomData()">Random Data</button>
+                <button class="button" onclick="simulateUpdate()">Simulate Update</button>
+            </div>
+            <p>Current messages sent: <span class="counter" id="messageCounter">0</span></p>
+        </div>
+
+        <div class="card">
+            <h3>📜 Scrollable Content Test</h3>
+            <p>Scroll in the area below to test scroll event tracking:</p>
+            <div class="scroll-area" id="scrollArea">
+                <!-- Content will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📋 Communication Log</h3>
+            <button class="button" onclick="clearLog()">Clear Log</button>
+            <div class="log" id="eventLog">
+                <div class="log-entry info">[INFO] Web app initialized and ready</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let messageCount = 0;
+        let updateCount = 0;
+        let version = 1.0;
+
+        // Initialize the app
+        function init() {
+            generateScrollContent();
+            logEvent('Web app loaded successfully', 'success');
+            
+            // Auto-update dynamic content
+            setInterval(updateDynamicContent, 8000);
+            
+            // Simulate periodic updates
+            setInterval(simulatePeriodicUpdate, 15000);
+            
+            // Send initial ready signal
+            setTimeout(() => {
+                if (window.FlutterBridge) {
+                    sendReady();
+                } else {
+                    logEvent('FlutterBridge not available - running in browser', 'warning');
+                }
+            }, 1000);
+        }
+
+        // Generate scrollable content
+        function generateScrollContent() {
+            const scrollArea = document.getElementById('scrollArea');
+            for (let i = 1; i <= 30; i++) {
+                const item = document.createElement('div');
+                item.className = 'scroll-item';
+                item.innerHTML = `
+                    <strong>📌 Scroll Item ${i}</strong><br>
+                    <small>This is item ${i} in the scrollable area. Each scroll action sends position data to Flutter!</small>
+                `;
+                scrollArea.appendChild(item);
+            }
+
+            // Add scroll listener
+            scrollArea.addEventListener('scroll', () => {
+                const scrollData = {
+                    scrollTop: scrollArea.scrollTop,
+                    scrollLeft: scrollArea.scrollLeft,
+                    scrollHeight: scrollArea.scrollHeight,
+                    clientHeight: scrollArea.clientHeight,
+                    percentage: Math.round((scrollArea.scrollTop / (scrollArea.scrollHeight - scrollArea.clientHeight)) * 100)
+                };
+                
+                if (window.FlutterBridge) {
+                    window.FlutterBridge.scroll(scrollData);
+                }
+            });
+        }
+
+        // Log events with styling
+        function logEvent(message, type = 'info') {
+            const log = document.getElementById('eventLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+            
+            // Keep only last 30 entries
+            while (log.children.length > 30) {
+                log.removeChild(log.firstChild);
+            }
+        }
+
+        // Update message counter
+        function updateCounter() {
+            messageCount++;
+            document.getElementById('messageCounter').textContent = messageCount;
+        }
+
+        // Flutter Bridge Functions
+        function sendReady() {
+            if (window.FlutterBridge) {
+                const data = {
+                    timestamp: new Date().toISOString(),
+                    version: version.toFixed(1),
+                    userAgent: navigator.userAgent,
+                    screenSize: {
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    }
+                };
+                window.FlutterBridge.ready(data);
+                logEvent('✅ Sent ready signal to Flutter', 'success');
+                updateCounter();
+            } else {
+                logEvent('❌ FlutterBridge not available', 'error');
+            }
+        }
+
+        function sendUpdate() {
+            if (window.FlutterBridge) {
+                version += 0.1;
+                updateCount++;
+                const data = {
+                    version: version.toFixed(1),
+                    content: `Updated content from web app v${version.toFixed(1)}`,
+                    updateType: 'manual',
+                    timestamp: new Date().toISOString(),
+                    updateCount: updateCount
+                };
+                
+                window.FlutterBridge.updateData(data);
+                document.getElementById('versionNumber').textContent = version.toFixed(1);
+                document.getElementById('updateCount').textContent = updateCount;
+                logEvent(`🔄 Sent update v${version.toFixed(1)} to Flutter`, 'info');
+                updateCounter();
+            }
+        }
+
+        function sendError() {
+            if (window.FlutterBridge) {
+                const errorMessage = 'Test error from web app - this is intentional!';
+                window.FlutterBridge.error(errorMessage);
+                logEvent('⚠️ Sent test error to Flutter', 'error');
+                updateCounter();
+            }
+        }
+
+        function sendScroll() {
+            if (window.FlutterBridge) {
+                const scrollData = {
+                    pageX: window.scrollX,
+                    pageY: window.scrollY,
+                    maxX: document.body.scrollWidth - window.innerWidth,
+                    maxY: document.body.scrollHeight - window.innerHeight,
+                    viewportWidth: window.innerWidth,
+                    viewportHeight: window.innerHeight
+                };
+                window.FlutterBridge.scroll(scrollData);
+                logEvent('📜 Sent scroll information to Flutter', 'info');
+                updateCounter();
+            }
+        }
+
+        function sendCustomMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message && window.FlutterBridge) {
+                const data = {
+                    message: message,
+                    timestamp: new Date().toISOString(),
+                    length: message.length,
+                    type: 'user_input'
+                };
+                
+                window.FlutterBridge.send('custom', 'user_message', data);
+                logEvent(`💬 Sent custom message: "${message}"`, 'success');
+                input.value = '';
+                updateCounter();
+            } else if (!message) {
+                logEvent('❌ Please enter a message', 'warning');
+            }
+        }
+
+        function sendUserData() {
+            if (window.FlutterBridge) {
+                const data = {
+                    userId: 'demo_user_123',
+                    preferences: {
+                        theme: 'dark',
+                        language: 'en',
+                        notifications: true
+                    },
+                    sessionData: {
+                        loginTime: new Date().toISOString(),
+                        pageViews: Math.floor(Math.random() * 50) + 1,
+                        timeSpent: Math.floor(Math.random() * 3600) + 300
+                    }
+                };
+                
+                window.FlutterBridge.send('custom', 'user_data', data);
+                logEvent('👤 Sent user data to Flutter', 'info');
+                updateCounter();
+            }
+        }
+
+        function sendDeviceInfo() {
+            if (window.FlutterBridge) {
+                const data = {
+                    platform: navigator.platform,
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    cookieEnabled: navigator.cookieEnabled,
+                    onLine: navigator.onLine,
+                    screen: {
+                        width: screen.width,
+                        height: screen.height,
+                        colorDepth: screen.colorDepth
+                    },
+                    viewport: {
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    }
+                };
+                
+                window.FlutterBridge.send('custom', 'device_info', data);
+                logEvent('📱 Sent device information to Flutter', 'info');
+                updateCounter();
+            }
+        }
+
+        function sendRandomData() {
+            if (window.FlutterBridge) {
+                const randomTypes = ['notification', 'alert', 'update', 'message'];
+                const randomType = randomTypes[Math.floor(Math.random() * randomTypes.length)];
+                
+                const data = {
+                    type: randomType,
+                    value: Math.floor(Math.random() * 1000),
+                    text: `Random ${randomType} generated at ${new Date().toLocaleTimeString()}`,
+                    priority: Math.random() > 0.5 ? 'high' : 'normal'
+                };
+                
+                window.FlutterBridge.send('custom', 'random_data', data);
+                logEvent(`🎲 Sent random ${randomType} data to Flutter`, 'info');
+                updateCounter();
+            }
+        }
+
+        function simulateUpdate() {
+            version += 0.1;
+            updateCount++;
+            
+            if (window.FlutterBridge) {
+                const data = {
+                    version: version.toFixed(1),
+                    content: 'Simulated automatic update',
+                    updateType: 'automatic',
+                    timestamp: new Date().toISOString(),
+                    changes: ['UI improvements', 'Bug fixes', 'New features']
+                };
+                
+                window.FlutterBridge.updateData(data);
+                document.getElementById('versionNumber').textContent = version.toFixed(1);
+                document.getElementById('updateCount').textContent = updateCount;
+                logEvent(`🤖 Simulated auto-update v${version.toFixed(1)}`, 'success');
+                updateCounter();
+            }
+        }
+
+        function updateDynamicContent() {
+            const messages = [
+                '🚀 Dynamic content is amazing!',
+                '⚡ Real-time updates without app store!',
+                '🎉 Flutter + Web = Perfect combo!',
+                '🌟 Seamless integration working!',
+                '💎 No mobile deployment needed!',
+                '🔥 Hot updates in action!',
+                '✨ Web bridge is powerful!'
+            ];
+            
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            document.getElementById('dynamicText').textContent = randomMessage;
+            
+            // Sometimes send an update to Flutter
+            if (Math.random() > 0.6 && window.FlutterBridge) {
+                simulateUpdate();
+            }
+        }
+
+        function simulatePeriodicUpdate() {
+            if (Math.random() > 0.7 && window.FlutterBridge) {
+                const updateTypes = ['content_refresh', 'data_sync', 'notification'];
+                const randomType = updateTypes[Math.floor(Math.random() * updateTypes.length)];
+                
+                window.FlutterBridge.send('dataUpdate', 'periodic_update', {
+                    type: randomType,
+                    timestamp: new Date().toISOString(),
+                    automatic: true,
+                    data: `Periodic ${randomType} update`
+                });
+                
+                logEvent(`⏰ Periodic ${randomType} update sent`, 'info');
+            }
+        }
+
+        function clearLog() {
+            const log = document.getElementById('eventLog');
+            log.innerHTML = '<div class="log-entry info">[INFO] Log cleared</div>';
+        }
+
+        // Handle messages from Flutter
+        window.onFlutterMessage = function(message) {
+            logEvent(`📥 Received from Flutter: ${JSON.stringify(message)}`, 'success');
+            
+            if (message.action === 'updateContent') {
+                document.getElementById('dynamicText').textContent = 
+                    message.data.content || 'Content updated from Flutter!';
+            }
+            
+            if (message.action === 'ping') {
+                // Respond to ping
+                if (window.FlutterBridge) {
+                    window.FlutterBridge.send('custom', 'pong', {
+                        timestamp: new Date().toISOString(),
+                        message: 'Pong from web!'
+                    });
+                }
+            }
+        };
+
+        // Handle keyboard events
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.target.id === 'messageInput') {
+                sendCustomMessage();
+            }
+        });
+
+        // Handle window events
+        window.addEventListener('resize', function() {
+            if (window.FlutterBridge) {
+                window.FlutterBridge.send('resize', 'window_resize', {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
